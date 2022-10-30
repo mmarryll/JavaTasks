@@ -1,3 +1,4 @@
+import java.awt.image.CropImageFilter;
 import java.io.*;
 import java.util.Scanner;
 import java.util.zip.*;
@@ -41,24 +42,20 @@ public class Tasks {
         pw.close();
 
         // Zip
-        String inFileName = "C:\\Users\\37529\\IdeaProjects\\PP\\src\\in.txt";
-        String outZipFileName = "C:\\Users\\37529\\IdeaProjects\\PP\\src\\outfromZip.txt";
-        String wayName = "C:\\Users\\37529\\IdeaProjects\\PP\\src\\out.zip";
+        String inFileName = "C:\\Users\\37529\\IdeaProjects\\Tasks\\src\\in.txt";
+        String outZipFileName = "C:\\Users\\37529\\IdeaProjects\\Tasks\\src\\outfromZip.txt";
+        String wayName = "C:\\Users\\37529\\IdeaProjects\\Tasks\\src\\out.zip";
         ZipArchieve za = new ZipArchieve();
         za.Archiving(inFileName, wayName);
         za.Dearchiving(wayName, outZipFileName);
 
         //Cryptography
-        String encryptedFileName = "C:\\Users\\sivog\\IdeaProjects\\PP\\src\\encryptedOutput.txt";
-        String decryptedFileName = "C:\\Users\\sivog\\IdeaProjects\\PP\\src\\deryptedOutput.txt";
-        EncryptGen eg = new EncryptGen();
-        eg.EncryptFile(outputFileName, encryptedFileName);
-        eg.DecryptFile(encryptedFileName, decryptedFileName);
+        String outputFileName = "C:\\Users\\37529\\IdeaProjects\\Tasks\\src\\out.txt";
+        String encryptedFileName = "C:\\Users\\37529\\IdeaProjects\\Tasks\\src\\encrOut.txt";
+        String decryptedFileName = "C:\\Users\\37529\\IdeaProjects\\Tasks\\src\\decrOut.txt";
+        Criptography cr = new Criptography();
+        cr.EncryptFile(outputFileName, encryptedFileName);
+        cr.DecryptFile(encryptedFileName, decryptedFileName);
 
-        //XML
-        String inputXmlFileName = "C:\\Users\\sivog\\IdeaProjects\\PP\\src\\input.xml";
-        String outputXmlFileName = "C:\\Users\\sivog\\IdeaProjects\\PP\\src\\output.xml";
-        ProcessingXmlFile parse = new ProcessingXmlFile(inputXmlFileName, outputXmlFileName);
-        parse.WriteXML();
     }
 }
