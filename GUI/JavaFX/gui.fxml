@@ -27,3 +27,4 @@
       <Button layoutX="515.0" layoutY="276.0" mnemonicParsing="false" onAction="#actionClear" prefHeight="26.0" prefWidth="62.0" text="clear" />
    </children>
 </AnchorPane>
+
