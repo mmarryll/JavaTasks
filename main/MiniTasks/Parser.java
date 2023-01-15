@@ -1,10 +1,10 @@
-package common.MiniTasks;
+package MiniTasks;
 
 import java.lang.*;
 import java.io.*;
 import java.util.*;
 
-public class ExpressionParser {
+public class Parser {
     private static String operators = "+-*/";
     private static String delimiters = "() " + operators;
     public static boolean flag = true;
