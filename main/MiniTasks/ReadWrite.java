@@ -1,65 +1,65 @@
-package common.MiniTasks;
+package MiniTasks;
 
-import java.io.*;
-import java.util.Base64;
-import java.util.zip.*;
-
-
-
-interface IData{
-    String read(String filename);
-    void write(String filename, String text);
-}
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class ReadWrite implements IData {
+    public ReadWrite() {
+    }
 
-    @Override
-    public String read(String filename) {
-        String text = "";
-        try(FileReader reader = new FileReader(filename))
-        {
-            int c;
-            while((c=reader.read())!=-1){
-                text += (char)c;
+    public void write(String filename, String str) {
+        try {
+            FileWriter fw = new FileWriter(filename, false);
+
+            try {
+                fw.write(str);
+                fw.flush();
+            } catch (Throwable var7) {
+                try {
+                    fw.close();
+                } catch (Throwable var6) {
+                    var7.addSuppressed(var6);
+                }
+
+                throw var7;
             }
 
+            fw.close();
+        } catch (IOException var8) {
+            System.out.println(var8.getMessage());
         }
-        catch(IOException ex){
-            System.out.println(ex.getMessage());
-        }
-        return text;
+
     }
-
-    @Override
-    public void write(String filename, String text) {
-        try(FileWriter writer = new FileWriter(filename, false))
-        {
-            // запись всей строки
-            writer.write(text);
-            writer.flush();
-        }
-        catch(IOException ex){
-            System.out.println(ex.getMessage());
-        }
-    }
-}
-
-
-class DataDecorator implements IData{
-    protected IData wrappee;
-
-    DataDecorator(IData data){
-        wrappee = data;
-    }
-
-    @Override
     public String read(String filename) {
-        return wrappee.read(filename);
+        String str = "";
+
+        try {
+            FileReader fr = new FileReader(filename);
+
+            int c;
+            try {
+                while((c = fr.read()) != -1) {
+                    str = str + (char)c;
+                }
+            } catch (Throwable var7) {
+                try {
+                    fr.close();
+                } catch (Throwable var6) {
+                    var7.addSuppressed(var6);
+                }
+
+                throw var7;
+            }
+
+            fr.close();
+        } catch (IOException var8) {
+            System.out.println(var8.getMessage());
+        }
+
+        return str;
     }
 
-    @Override
-    public void write(String filename, String text) {
-        wrappee.write(filename, text);
-    }
+   
 }
 
