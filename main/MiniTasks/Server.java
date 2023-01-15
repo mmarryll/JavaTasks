@@ -1,222 +1,246 @@
-package common.MiniTasks;
+package MiniTasks;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.RandomAccessFile;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.List;
-import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Server {
-    private Socket s;
-
-    OutputStream os;
-    InputStream is;
-
+    private Socket socket;
+    OutputStream ostr;
+    InputStream istr;
     private String flag;
     private String filename;
 
+    public Server() {
+    }
 
     void RPN() {
-        ReadWrite readWrite = new ReadWrite();
-        String text = readWrite.read(filename);
+        ReadWrite rw = new ReadWrite();
+        String str = rw.read(this.filename);
+        Pattern pattern = Pattern.compile("[()0-9]*( ){0,}([+-/*]( ){0,}[()0-9]{0,})*");
+        Matcher m = pattern.matcher(str);
 
-        Pattern MY_PATTERN = Pattern.compile("[()0-9]*( ){0,}([+-/*]( ){0,}[()0-9]{0,})*");
-        Matcher m = MY_PATTERN.matcher(text);
-        while (m.find()) {
+        while(m.find()) {
             String expression = m.group();
-            if(expression.equals("") || expression.equals(" ")) {
-                continue;
-            }
-            try {
-                text = text.replace(expression, Ideone.calc(ExpressionParser.parse(expression)));
-            }
-            catch(Exception e){
-                ///
+            if (!expression.equals("") && !expression.equals(" ")) {
+                try {
+                    str = str.replace(expression, Ideone.calc(ExpressionParser.parse(expression)));
+                } catch (Exception var7) {
+                }
             }
         }
-        readWrite.write(filename, text);
+
+        rw.write(this.filename, str);
     }
 
     String transformFile() {
-        ReadWrite readWrite = new ReadWrite();
-        create("new" + filename);
-        readWrite.write("new" + filename, readWrite.read(filename));
-        delete(filename);
-        filename = "new" + filename;
+        ReadWrite rw = new ReadWrite();
+        create("new" + this.filename);
+        rw.write("new" + this.filename, rw.read(this.filename));
+        delete(this.filename);
+        this.filename = "new" + this.filename;
+        if (this.flag.equals("")) {
+            return this.filename;
+        } else {
+            String command = null;
 
-        if (flag.equals(""))
-            return filename;
+            while(true) {
+                String str;
+                while(true) {
+                    ZipDecorator zip;
+                    while(true) {
+                        if (this.flag.equals("")) {
+                            return this.filename;
+                        }
 
-        String command = null;
-        while (!flag.equals("")) {
-            command = flag.substring(0, 2);
-            flag = flag.substring(2);
-            //System.out.println(command);
+                        command = this.flag.substring(0, 2);
+                        this.flag = this.flag.substring(2);
+                        EncryptionDecorator encryptionDecorator;
+                        if (command.equals("Ee")) {
+                            if (this.filename.contains(".zip")) {
+                                delete(this.filename);
+                                this.filename = this.filename.replaceAll(".zip", "");
+                            }
 
-            if (command.equals("Ee")) {
-                if (filename.contains(".zip")) {
-                    delete(filename);
-                    filename = filename.replaceAll(".zip", "");
+                            encryptionDecorator = new EncryptionDecorator(rw);
+                            str = rw.read(this.filename);
+                            encryptionDecorator.write(this.filename, str);
+                        }
+
+                        if (command.equals("Ed")) {
+                            if (this.filename.contains(".zip")) {
+                                delete(this.filename);
+                                this.filename = this.filename.replaceAll(".zip", "");
+                            }
+
+                            encryptionDecorator = new EncryptionDecorator(rw);
+                            str = encryptionDecorator.read(this.filename);
+                            rw.write(this.filename, str);
+                        }
+
+                        if (!command.equals("Zz")) {
+                            break;
+                        }
+
+                        if (!this.filename.contains(".zip")) {
+                            zip = new ZipDecorator(rw);
+                            str = rw.read(this.filename);
+                            zip.write(this.filename, str);
+                            this.filename = this.filename + ".zip";
+                            break;
+                        }
+                    }
+
+                    if (!command.equals("Zu")) {
+                        break;
+                    }
+
+                    if (this.filename.contains(".zip")) {
+                        zip = new ZipDecorator(rw);
+                        str = zip.read(this.filename);
+                        rw.write(this.filename, str);
+                        delete(this.filename);
+                        this.filename = this.filename.replaceAll(".zip", "");
+                        break;
+                    }
                 }
-                EncryptionDecorator encryptionDecorator = new EncryptionDecorator(readWrite);
-                String text = readWrite.read(filename);
-                encryptionDecorator.write(filename, text);
-            }
 
-            if (command.equals("Ed")) {
-                if (filename.contains(".zip")) {
-                    delete(filename);
-                    filename = filename.replaceAll(".zip", "");
+                CompressDecorator comp;
+                if (command.equals("Cc")) {
+                    if (this.filename.contains(".zip")) {
+                        delete(this.filename);
+                        this.filename = this.filename.replaceAll(".zip", "");
+                    }
+
+                    comp = new CompressDecorator(rw);
+                    str = rw.read(this.filename);
+                    comp.write(this.filename, str);
                 }
-                EncryptionDecorator encryptionDecorator = new EncryptionDecorator(readWrite);
-                String text = encryptionDecorator.read(filename);
-                readWrite.write(filename, text);
-            }
 
-            if (command.equals("Zz")) {
-                if (filename.contains(".zip")) {
-                    continue;
+                if (command.equals("Cd")) {
+                    if (this.filename.contains(".zip")) {
+                        delete(this.filename);
+                        this.filename = this.filename.replaceAll(".zip", "");
+                    }
+
+                    comp = new CompressDecorator(rw);
+                    str = comp.read(this.filename);
+                    rw.write(this.filename, str);
                 }
-                ZipperDecorator zipperDecorator = new ZipperDecorator(readWrite);
-                String text = readWrite.read(filename);
-                zipperDecorator.write(filename, text);
-                filename += ".zip";
-            }
-
-            if (command.equals("Zu")) {
-                if (!filename.contains(".zip")) {
-                    continue;
-                }
-                ZipperDecorator zipperDecorator = new ZipperDecorator(readWrite);
-                String text = zipperDecorator.read(filename);
-                readWrite.write(filename, text);
-
-                delete(filename);
-                filename = filename.replaceAll(".zip", "");
-            }
-
-            if (command.equals("Cc")) {
-                if (filename.contains(".zip")) {
-                    delete(filename);
-                    filename = filename.replaceAll(".zip", "");
-                }
-                CompressDecorator compressDecorator = new CompressDecorator(readWrite);
-                String text = readWrite.read(filename);
-                compressDecorator.write(filename, text);
-            }
-
-            if (command.equals("Cd")) {
-                if (filename.contains(".zip")) {
-                    delete(filename);
-                    filename = filename.replaceAll(".zip", "");
-                }
-                CompressDecorator compressDecorator = new CompressDecorator(readWrite);
-                String text = compressDecorator.read(filename);
-                readWrite.write(filename, text);
             }
         }
-        return filename;
     }
-
 
     public void connectSocketServer(int port) {
         try {
             ServerSocket server = new ServerSocket(port);
-            s = server.accept();
-        } catch (Exception e) {
-            e.printStackTrace();
+            this.socket = server.accept();
+        } catch (Exception var4) {
+            var4.printStackTrace();
         }
+
         try {
-            is = s.getInputStream();
-            os = s.getOutputStream();
-        } catch (IOException e) {
-            e.printStackTrace();
+            this.istr = this.socket.getInputStream();
+            this.ostr = this.socket.getOutputStream();
+        } catch (IOException var3) {
+            var3.printStackTrace();
         }
+
     }
 
-    public void initServer(int port){
-        while (s == null) {
+    public void initServer(int port) {
+        while(this.socket == null) {
             try {
-                s = new Socket(InetAddress.getLocalHost(), port); // Подключиться к серверу
-            } catch (IOException e) {
-                //e.printStackTrace();
+                this.socket = new Socket(InetAddress.getLocalHost(), port);
+            } catch (IOException var3) {
             }
         }
 
         try {
-            os = s.getOutputStream();
-            is = s.getInputStream();
-        } catch (IOException e) {
-            e.printStackTrace();
+            this.ostr = this.socket.getOutputStream();
+            this.istr = this.socket.getInputStream();
+        } catch (IOException var4) {
+            var4.printStackTrace();
         }
-    } // чтение файла из SocketClient
 
-    public void serverStop(){
-        try {
-            s.close();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
+    public void serverStop() {
+        try {
+            this.socket.close();
+        } catch (IOException var2) {
+            var2.printStackTrace();
+        }
+
+    }
 
     public String getFile() {
-        byte[] b=new byte[1024];
-        try {// Определим входной поток,
-            InputStream in = is;
-            DataInputStream din = new DataInputStream (new BufferedInputStream(in)); // Создать файл для сохранения
-            filename = din.readLine();
-            flag = din.readLine();
-            File f = new File(filename);
+        byte[] b = new byte[1024];
+
+        try {
+            InputStream in = this.istr;
+            DataInputStream din = new DataInputStream(new BufferedInputStream(in));
+            this.filename = din.readLine();
+            this.flag = din.readLine();
+            File f = new File(this.filename);
             RandomAccessFile fw = new RandomAccessFile(f, "rw");
 
-            int num = din.read(b);
-            while (num != -1) {// Записать 0 ~ num байтов в файл
-                fw.write(b, 0, num); // Пропустить num байтов и снова записать в файл
-                fw.skipBytes(num); // Чтение num байтов
-                num = din.read(b);
-            } // Закрыть входной и выходной потоки
+            for(int num = din.read(b); num != -1; num = din.read(b)) {
+                fw.write(b, 0, num);
+                fw.skipBytes(num);
+            }
+
             din.close();
             fw.close();
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception var7) {
+            var7.printStackTrace();
         }
-        return filename;
+
+        return this.filename;
     }
 
     public void sendFile(String filename) {
-
         try {
-            PrintWriter printWriter = new PrintWriter(os, true);
+            PrintWriter printWriter = new PrintWriter(this.ostr, true);
             printWriter.println(filename);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception var7) {
+            var7.printStackTrace();
         }
 
         byte[] b = new byte[1];
         File f = new File(filename);
-        try {// Поток вывода данных
-            OutputStream dout = new DataOutputStream(new BufferedOutputStream(s.getOutputStream ())); // Поток чтения файла
+
+        try {
+            OutputStream dout = new DataOutputStream(new BufferedOutputStream(this.socket.getOutputStream()));
             InputStream ins = new FileInputStream(f);
-            int n = ins.read(b);
-            while (n != -1) {// Запись данных в сеть
-                dout.write (b); // Отправить содержимое файла
-                dout.flush (); // снова прочитать n байтов
-                n = ins.read(b);
-            } // Закрыть поток
+
+            for(int n = ins.read(b); n != -1; n = ins.read(b)) {
+                dout.write(b);
+                dout.flush();
+            }
+
             ins.close();
             dout.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException var8) {
+            var8.printStackTrace();
         }
+
     }
 
-
-    public static void create(String filename){
+    public static void create(String filename) {
         try {
             File myObj = new File(filename);
             if (myObj.createNewFile()) {
@@ -224,21 +248,21 @@ public class Server {
             } else {
                 System.out.println("File already exists.");
             }
-        } catch (IOException e) {
+        } catch (IOException var2) {
             System.out.println("An error occurred.");
-            e.printStackTrace();
+            var2.printStackTrace();
         }
+
     }
 
-    public static void delete(String filename){
+    public static void delete(String filename) {
         File file = new File(filename);
-        if(file.delete())
-        {
+        if (file.delete()) {
             System.out.println("File deleted successfully");
-        }
-        else
-        {
+        } else {
             System.out.println("Failed to delete the file");
         }
+
     }
 }
+
