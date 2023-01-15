@@ -11,7 +11,7 @@ import javafx.stage.Stage;
 import java.io.File;
 
 
-public class Controller {
+public class GUIController {
     private boolean chooseFile;
     private File selectedFile;
     private String flag;
@@ -65,8 +65,7 @@ public class Controller {
         textArea.setText("");
     }
 
-
-    ////transform file handlers:
+    
     @FXML
     void actionCompress(ActionEvent event) {
         if(!chooseFile){
