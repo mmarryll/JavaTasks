@@ -1,40 +1,133 @@
-package test;
+package MiniTasks;
 
-import org.junit.Assert;
-import org.junit.Test;
-import com.company.ExpressionParser;
-import com.company.Ideone;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.List;
+import java.util.StringTokenizer;
 
-public class RPNTest {
+public class Parser {
+    private static String operators = "+-*/";
+    private static String delimiters;
+    public static boolean flag;
 
-    @Test
-    public void RPN1plus1() {
-        Assert.assertEquals(Ideone.calc(ExpressionParser.parse("1+1")),"2.0");
+    public Parser() {
     }
 
-    @Test
-    public void RPN2mul5() {
-        Assert.assertEquals(Ideone.calc(ExpressionParser.parse("2*5")),"10.0");
+    private static boolean isDelimiter(String token) {
+        if (token.length() != 1) {
+            return false;
+        } else {
+            for(int i = 0; i < delimiters.length(); ++i) {
+                if (token.charAt(0) == delimiters.charAt(i)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 
-    @Test
-    public void RPN9dev3() {
-        Assert.assertEquals(Ideone.calc(ExpressionParser.parse("9/3")),"3.0");
+    private static boolean isOperator(String token) {
+        if (token.equals("u-")) {
+            return true;
+        } else {
+            for(int i = 0; i < operators.length(); ++i) {
+                if (token.charAt(0) == operators.charAt(i)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 
-    @Test
-    public void RPNplusmuldev() {
-        Assert.assertEquals(Ideone.calc(ExpressionParser.parse("2+4*5+10/2")),"27.0");
+    private static boolean isFunction(String token) {
+        return token.equals("sqrt") || token.equals("cube") || token.equals("pow10");
     }
 
-    @Test
-    public void RPNplusminusmuldev() {
-        Assert.assertEquals(Ideone.calc(ExpressionParser.parse("8+2*5")),"18.0");
+    private static int priority(String token) {
+        if (token.equals("(")) {
+            return 1;
+        } else if (!token.equals("+") && !token.equals("-")) {
+            return !token.equals("*") && !token.equals("/") ? 4 : 3;
+        } else {
+            return 2;
+        }
     }
 
-    @Test
-    public void RPNbrackets() {
-        Assert.assertEquals(Ideone.calc(ExpressionParser.parse("((8+2)*5)/2")),"25.0");
+    public static List<String> parse(String infix) {
+        List<String> postfix = new ArrayList();
+        Deque<String> stack = new ArrayDeque();
+        StringTokenizer tokenizer = new StringTokenizer(infix, delimiters, true);
+        String prev = "";
+        String curr = "";
+
+        while(true) {
+            do {
+                if (!tokenizer.hasMoreTokens()) {
+                    while(!stack.isEmpty()) {
+                        if (!isOperator((String)stack.peek())) {
+                            System.out.println("Скобки не согласованы.");
+                            flag = false;
+                            return postfix;
+                        }
+
+                        postfix.add((String)stack.pop());
+                    }
+
+                    return postfix;
+                }
+
+                curr = tokenizer.nextToken();
+                if (!tokenizer.hasMoreTokens() && isOperator(curr)) {
+                    System.out.println("Некорректное выражение.");
+                    flag = false;
+                    return postfix;
+                }
+            } while(curr.equals(" "));
+
+            if (isFunction(curr)) {
+                stack.push(curr);
+            } else if (isDelimiter(curr)) {
+                if (curr.equals("(")) {
+                    stack.push(curr);
+                } else if (curr.equals(")")) {
+                    while(!((String)stack.peek()).equals("(")) {
+                        postfix.add((String)stack.pop());
+                        if (stack.isEmpty()) {
+                            System.out.println("Скобки не согласованы.");
+                            flag = false;
+                            return postfix;
+                        }
+                    }
+
+                    stack.pop();
+                    if (!stack.isEmpty() && isFunction((String)stack.peek())) {
+                        postfix.add((String)stack.pop());
+                    }
+                } else {
+                    if (curr.equals("-") && (prev.equals("") || isDelimiter(prev) && !prev.equals(")"))) {
+                        curr = "u-";
+                    } else {
+                        while(!stack.isEmpty() && priority(curr) <= priority((String)stack.peek())) {
+                            postfix.add((String)stack.pop());
+                        }
+                    }
+
+                    stack.push(curr);
+                }
+            } else {
+                postfix.add(curr);
+            }
+
+            prev = curr;
+        }
     }
 
+    static {
+        delimiters = "() " + operators;
+        flag = true;
+    }
 }
+
